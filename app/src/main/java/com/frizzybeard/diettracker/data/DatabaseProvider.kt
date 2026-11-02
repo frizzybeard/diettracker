@@ -1,11 +1,8 @@
+
 package com.frizzybeard.diettracker.data
 
 import android.content.Context
 import androidx.room.Room
-import androidx.room.RoomDatabase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 object DatabaseProvider {
 
@@ -19,23 +16,19 @@ object DatabaseProvider {
                 DietTrackerDatabase::class.java,
                 "diet_tracker.db"
             )
-                .addCallback(object : RoomDatabase.Callback() {
-
-                    override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
-                        super.onCreate(db)
-
-                        CoroutineScope(Dispatchers.IO).launch {
-                            INSTANCE?.dishDao()?.insertDishes(
-                                DishSeeder.getInitialDishes()
-                            )
-                        }
-                    }
-
-                })
+                .addMigrations(DietTrackerDatabase.MIGRATION_1_2)
                 .build()
                 .also {
                     INSTANCE = it
                 }
+        }
+    }
+
+    suspend fun ensureDishesSeeded(context: Context) {
+        val dao = getDatabase(context).dishDao()
+
+        if (dao.getDishCount() == 0) {
+            dao.insertDishes(DishSeeder.getInitialDishes())
         }
     }
 }

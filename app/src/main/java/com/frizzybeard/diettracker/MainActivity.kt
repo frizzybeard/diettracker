@@ -46,6 +46,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.ui.platform.LocalContext
+import com.frizzybeard.diettracker.data.DatabaseProvider
+import com.frizzybeard.diettracker.data.DishEntity
 
 
 class MainActivity : ComponentActivity() {
@@ -79,7 +82,7 @@ enum class AppTab {
     HOME,
     MEALS,
     DISHES,
-    SETTINGS
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -134,17 +137,7 @@ fun GlucoseTrackerApp() {
                     label = { Text("Dishes") }
                 )
 
-                NavigationBarItem(
-                    selected = selectedTab == AppTab.SETTINGS,
-                    onClick = { selectedTab = AppTab.SETTINGS },
-                    icon = {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Settings"
-                        )
-                    },
-                    label = { Text("Settings") }
-                )
+
             }
         }
     ) { padding ->
@@ -163,9 +156,8 @@ fun GlucoseTrackerApp() {
                 modifier = Modifier.padding(padding)
             )
 
-            AppTab.SETTINGS -> SettingsScreen(
-                modifier = Modifier.padding(padding)
-            )
+
+
         }
     }
 }
@@ -673,54 +665,144 @@ fun MealsScreen(
     }
 }
 
+
+
 @Composable
 fun DishesScreen(
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val database = remember {
+        DatabaseProvider.getDatabase(context)
+    }
+
+    var dishes by remember {
+        mutableStateOf(emptyList<DishEntity>())
+    }
+
+    var isLoading by remember { mutableStateOf(true) }
+    var showDialog by remember { mutableStateOf(false) }
+    var dishName by remember { mutableStateOf("") }
+    var ingredients by remember { mutableStateOf("") }
+
+    suspend fun loadDishes() {
+        DatabaseProvider.ensureDishesSeeded(context)
+        dishes = database.dishDao().getAllDishes()
+    }
+
+    LaunchedEffect(Unit) {
+        loadDishes()
+        isLoading = false
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(20.dp)
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Dishes",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f)
+            )
 
-        Text(
-            text = "Dishes",
-            style = MaterialTheme.typography.headlineSmall
-        )
+            Button(onClick = { showDialog = true }) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(Modifier.width(4.dp))
+                Text("Add")
+            }
+        }
 
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
+        Spacer(Modifier.height(12.dp))
 
-        Text(
-            text = "Recipes and ingredients will be managed here."
+        when {
+            isLoading -> Text("Loading dishes...")
+
+            else -> LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(dishes, key = { it.id }) { dish ->
+                    Surface(
+                        tonalElevation = 2.dp,
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(Modifier.padding(14.dp)) {
+                            Text(
+                                dish.dishName,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                dish.mainIngredients.ifBlank {
+                                    "Ingredients not added"
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Add New Dish") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = dishName,
+                        onValueChange = { dishName = it },
+                        label = { Text("Dish name") },
+                        singleLine = true
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = ingredients,
+                        onValueChange = { ingredients = it },
+                        label = { Text("Main ingredients") }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (dishName.isNotBlank()) {
+                            LaunchedEffect(Unit) {
+                                database.dishDao().insertDish(
+                                    DishEntity(
+                                        dishName = dishName.trim(),
+                                        mainIngredients = ingredients.trim()
+                                    )
+                                )
+                                loadDishes()
+                            }
+                            dishName = ""
+                            ingredients = ""
+                            showDialog = false
+                        }
+                    }
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
         )
     }
 }
 
-@Composable
-fun SettingsScreen(
-    modifier: Modifier = Modifier
-) {
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
 
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.headlineSmall
-        )
 
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
-        Text(
-            text = "Settings will be added later."
-        )
-    }
-}
