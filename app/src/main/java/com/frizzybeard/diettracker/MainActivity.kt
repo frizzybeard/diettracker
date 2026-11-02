@@ -123,7 +123,7 @@ fun GlucoseTrackerApp() {
                 modifier = Modifier.padding(padding)
             )
 
-            AppTab.MEALS -> MealsScreen(
+            AppTab.MEALS -> MealsTableScreen(
                 modifier = Modifier.padding(padding)
             )
 
