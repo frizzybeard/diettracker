@@ -1,4 +1,7 @@
+
 package com.frizzybeard.diettracker.data
 
-class MealDishTracker {
-}
+data class MealDishDetail(
+    val dishName: String,
+    val quantity: Int
+)
