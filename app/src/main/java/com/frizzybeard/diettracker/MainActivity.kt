@@ -36,10 +36,8 @@ import java.util.Date
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
             MaterialTheme {
                 Surface(
@@ -53,9 +51,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/* DATA                                                                        */
-/* -------------------------------------------------------------------------- */
+/* DATA */
 
 data class DishEntry(
     val dishId: Int,
@@ -69,141 +65,82 @@ data class MealHistoryEntry(
 )
 
 enum class AppTab {
-    HOME,
-    MEALS,
-    DISHES,
-    SETTINGS
+    HOME, MEALS, DISHES, SETTINGS
 }
 
-/* -------------------------------------------------------------------------- */
-/* APP                                                                         */
-/* -------------------------------------------------------------------------- */
+/* APP */
 
 @Composable
 fun GlucoseTrackerApp() {
-
-    var selectedTab by remember {
-        mutableStateOf(AppTab.HOME)
-    }
+    var selectedTab by remember { mutableStateOf(AppTab.HOME) }
 
     Scaffold(
         bottomBar = {
             NavigationBar {
-
                 NavigationBarItem(
                     selected = selectedTab == AppTab.HOME,
                     onClick = { selectedTab = AppTab.HOME },
-                    icon = {
-                        Icon(Icons.Default.Home, contentDescription = "Home")
-                    },
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                     label = { Text("Home") }
                 )
-
                 NavigationBarItem(
                     selected = selectedTab == AppTab.MEALS,
                     onClick = { selectedTab = AppTab.MEALS },
-                    icon = {
-                        Icon(Icons.Default.Restaurant, contentDescription = "Meals")
-                    },
+                    icon = { Icon(Icons.Default.Restaurant, contentDescription = "Meals") },
                     label = { Text("Meals") }
                 )
-
                 NavigationBarItem(
                     selected = selectedTab == AppTab.DISHES,
                     onClick = { selectedTab = AppTab.DISHES },
                     icon = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.MenuBook,
-                            contentDescription = "Dishes"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = "Dishes")
                     },
                     label = { Text("Dishes") }
                 )
-
                 NavigationBarItem(
                     selected = selectedTab == AppTab.SETTINGS,
                     onClick = { selectedTab = AppTab.SETTINGS },
-                    icon = {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Settings"
-                        )
-                    },
+                    icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
                     label = { Text("Settings") }
                 )
             }
         }
     ) { padding ->
-
         when (selectedTab) {
-            AppTab.HOME -> HomeScreen(
-                modifier = Modifier.padding(padding)
-            )
-
-            AppTab.MEALS -> MealsTableScreen(
-                modifier = Modifier.padding(padding)
-            )
-
-            AppTab.DISHES -> DishesScreen(
-                modifier = Modifier.padding(padding)
-            )
-
-            AppTab.SETTINGS -> SettingsScreen(
-                modifier = Modifier.padding(padding)
-            )
+            AppTab.HOME -> HomeScreen(modifier = Modifier.padding(padding))
+            AppTab.MEALS -> MealsTableScreen(modifier = Modifier.padding(padding))
+            AppTab.DISHES -> DishesScreen(modifier = Modifier.padding(padding))
+            AppTab.SETTINGS -> SettingsScreen(modifier = Modifier.padding(padding))
         }
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/* HOME                                                                        */
-/* -------------------------------------------------------------------------- */
+/* HOME */
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
-    modifier: Modifier = Modifier
-) {
-
+fun HomeScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    val database = remember {
-        DatabaseProvider.getDatabase(context)
-    }
+    val database = remember { DatabaseProvider.getDatabase(context) }
 
     var mealType by remember { mutableStateOf("Breakfast") }
     var mealMenuExpanded by remember { mutableStateOf(false) }
-
-    var dishes by remember {
-        mutableStateOf(emptyList<DishEntry>())
-    }
-
-    var availableDishes by remember {
-        mutableStateOf(emptyList<DishEntity>())
-    }
-
-    var isLoadingDishes by remember {
-        mutableStateOf(true)
-    }
-
-    var showAddDishDialog by remember {
-        mutableStateOf(false)
-    }
+    var dishes by remember { mutableStateOf(emptyList<DishEntry>()) }
+    var availableDishes by remember { mutableStateOf(emptyList<DishEntity>()) }
+    var isLoadingDishes by remember { mutableStateOf(true) }
+    var showAddDishDialog by remember { mutableStateOf(false) }
 
     var preMeal by remember { mutableStateOf("") }
     var twoHour by remember { mutableStateOf("") }
     var lyumjev by remember { mutableStateOf("") }
     var basalog by remember { mutableStateOf("") }
 
-    var selectedDateTime by remember {
-        mutableStateOf(Calendar.getInstance())
-    }
+    var selectedDateTime by remember { mutableStateOf(Calendar.getInstance()) }
 
     val dateFormat = remember {
         SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
     }
-
     val timeFormat = remember {
         SimpleDateFormat("hh:mm a", Locale.getDefault())
     }
@@ -222,15 +159,10 @@ fun HomeScreen(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp)
+        modifier = modifier.fillMaxSize().padding(horizontal = 20.dp)
     ) {
-
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -240,15 +172,10 @@ fun HomeScreen(
             )
 
             Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "Date",
-                    style = MaterialTheme.typography.labelSmall
-                )
-
+                Text("Date", style = MaterialTheme.typography.labelSmall)
                 TextButton(
                     onClick = {
                         val current = selectedDateTime.clone() as Calendar
-
                         DatePickerDialog(
                             context,
                             { _, year, month, day ->
@@ -270,15 +197,10 @@ fun HomeScreen(
             Spacer(modifier = Modifier.width(4.dp))
 
             Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "Time",
-                    style = MaterialTheme.typography.labelSmall
-                )
-
+                Text("Time", style = MaterialTheme.typography.labelSmall)
                 TextButton(
                     onClick = {
                         val current = selectedDateTime.clone() as Calendar
-
                         TimePickerDialog(
                             context,
                             { _, hour, minute ->
@@ -303,42 +225,26 @@ fun HomeScreen(
 
         ExposedDropdownMenuBox(
             expanded = mealMenuExpanded,
-            onExpandedChange = {
-                mealMenuExpanded = !mealMenuExpanded
-            }
+            onExpandedChange = { mealMenuExpanded = !mealMenuExpanded }
         ) {
-
             OutlinedTextField(
                 value = mealType,
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Meal") },
                 trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = mealMenuExpanded
-                    )
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = mealMenuExpanded)
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(
-                        ExposedDropdownMenuAnchorType.PrimaryNotEditable
-                    )
+                modifier = Modifier.fillMaxWidth().menuAnchor(
+                    ExposedDropdownMenuAnchorType.PrimaryNotEditable
+                )
             )
 
             ExposedDropdownMenu(
                 expanded = mealMenuExpanded,
-                onDismissRequest = {
-                    mealMenuExpanded = false
-                }
+                onDismissRequest = { mealMenuExpanded = false }
             ) {
-
-                listOf(
-                    "Breakfast",
-                    "Lunch",
-                    "Dinner",
-                    "Snack"
-                ).forEach { type ->
-
+                listOf("Breakfast", "Lunch", "Dinner", "Snack").forEach { type ->
                     DropdownMenuItem(
                         text = { Text(type) },
                         onClick = {
@@ -351,77 +257,46 @@ fun HomeScreen(
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "Dishes",
-            style = MaterialTheme.typography.titleMedium
-        )
-
+        Text("Dishes", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
 
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
-            items(
-                items = dishes,
-                key = { it.dishId }
-            ) { dish ->
-
+            items(items = dishes, key = { it.dishId }) { dish ->
                 DishQuantityRow(
                     dish = dish,
                     onDecrease = {
                         dishes = dishes.map {
                             if (it.dishId == dish.dishId) {
-                                it.copy(
-                                    quantity = (it.quantity - 1)
-                                        .coerceAtLeast(0)
-                                )
-                            } else {
-                                it
-                            }
+                                it.copy(quantity = (it.quantity - 1).coerceAtLeast(0))
+                            } else it
                         }
                     },
                     onIncrease = {
                         dishes = dishes.map {
                             if (it.dishId == dish.dishId) {
                                 it.copy(quantity = it.quantity + 1)
-                            } else {
-                                it
-                            }
+                            } else it
                         }
                     }
                 )
             }
 
             item {
-
                 OutlinedButton(
-                    onClick = {
-                        showAddDishDialog = true
-                    },
+                    onClick = { showAddDishDialog = true },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoadingDishes
                 ) {
-
                     Icon(Icons.Default.Add, contentDescription = null)
-
                     Spacer(modifier = Modifier.width(8.dp))
-
-                    Text(
-                        if (isLoadingDishes) "Loading dishes..."
-                        else "Add Dish"
-                    )
+                    Text(if (isLoadingDishes) "Loading dishes..." else "Add Dish")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Glucose",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
+                Text("Glucose", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 GlucoseField(
@@ -447,12 +322,7 @@ fun HomeScreen(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Insulin",
-                    style = MaterialTheme.typography.titleMedium
-                )
-
+                Text("Insulin", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
@@ -464,9 +334,7 @@ fun HomeScreen(
                     },
                     label = { Text("Lyumjev") },
                     suffix = { Text("units") },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal
-                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -482,9 +350,7 @@ fun HomeScreen(
                     },
                     label = { Text("Basalog") },
                     suffix = { Text("units") },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal
-                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -492,27 +358,18 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 errorMessage?.let {
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    Text(it, color = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 saveMessage?.let {
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Text(it, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 Button(
                     onClick = {
-
-                        val selectedDishes = dishes.filter {
-                            it.quantity > 0
-                        }
+                        val selectedDishes = dishes.filter { it.quantity > 0 }
 
                         if (selectedDishes.isEmpty()) {
                             errorMessage = "Please add at least one dish."
@@ -537,12 +394,8 @@ fun HomeScreen(
                         }
 
                         if (
-                            listOf(
-                                glucoseBefore,
-                                glucoseAfter,
-                                lyumjevDose,
-                                basalogDose
-                            ).any { it != null && it < 0 }
+                            listOf(glucoseBefore, glucoseAfter, lyumjevDose, basalogDose)
+                                .any { it != null && it < 0 }
                         ) {
                             errorMessage = "Values cannot be negative."
                             saveMessage = null
@@ -555,7 +408,6 @@ fun HomeScreen(
 
                         scope.launch {
                             try {
-
                                 val meal = MealEntity(
                                     mealType = mealType,
                                     timestamp = selectedDateTime.timeInMillis,
@@ -583,11 +435,8 @@ fun HomeScreen(
                                 twoHour = ""
                                 lyumjev = ""
                                 basalog = ""
-
                                 selectedDateTime = Calendar.getInstance()
-
                                 saveMessage = "Meal saved successfully!"
-
                             } catch (e: Exception) {
                                 errorMessage = "Unable to save meal. Please try again."
                             } finally {
@@ -607,58 +456,144 @@ fun HomeScreen(
     }
 
     if (showAddDishDialog) {
-
         AddDishDialog(
             availableDishes = availableDishes,
             existingDishIds = dishes.map { it.dishId },
-            onDismiss = {
-                showAddDishDialog = false
-            },
+            onDismiss = { showAddDishDialog = false },
             onDishSelected = { selectedDish ->
-
-                if (dishes.none {
-                        it.dishId == selectedDish.id
-                    }) {
+                if (dishes.none { it.dishId == selectedDish.id }) {
                     dishes = dishes + DishEntry(
                         dishId = selectedDish.id,
                         name = selectedDish.dishName,
                         quantity = 1
                     )
                 }
-
                 showAddDishDialog = false
             }
         )
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/* SETTINGS SCREEN                                                             */
-/* -------------------------------------------------------------------------- */
+/* SETTINGS */
 
 @Composable
-fun SettingsScreen(
-    modifier: Modifier = Modifier
-) {
+fun SettingsScreen(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(20.dp)
+        modifier = modifier.fillMaxSize().padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Text("Settings", style = MaterialTheme.typography.headlineSmall)
         Text(
-            text = "Settings",
-            style = MaterialTheme.typography.headlineSmall
+            "Meal reminders",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Text(
+            "Enable reminders independently and choose when each reminder should appear.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        MealReminderSettingRow(
+            title = "Breakfast",
+            preferenceKey = "breakfast",
+            defaultHour = 8,
+            defaultMinute = 0
+        )
 
-        Text("Meal reminders will be configured here.")
+        MealReminderSettingRow(
+            title = "Lunch",
+            preferenceKey = "lunch",
+            defaultHour = 13,
+            defaultMinute = 0
+        )
+
+        MealReminderSettingRow(
+            title = "Dinner",
+            preferenceKey = "dinner",
+            defaultHour = 20,
+            defaultMinute = 0
+        )
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/* DISH QUANTITY                                                               */
-/* -------------------------------------------------------------------------- */
+@Composable
+fun MealReminderSettingRow(
+    title: String,
+    preferenceKey: String,
+    defaultHour: Int,
+    defaultMinute: Int
+) {
+    val context = LocalContext.current
+
+    var config by remember(preferenceKey) {
+        mutableStateOf(
+            MealReminderPreferences.load(
+                context = context,
+                key = preferenceKey,
+                defaultHour = defaultHour,
+                defaultMinute = defaultMinute
+            )
+        )
+    }
+
+    val displayTime = remember(config.hour, config.minute) {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, config.hour)
+            set(Calendar.MINUTE, config.minute)
+        }
+        SimpleDateFormat("hh:mm a", Locale.getDefault()).format(calendar.time)
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium)
+
+                TextButton(
+                    onClick = {
+                        TimePickerDialog(
+                            context,
+                            { _, hour, minute ->
+                                config = config.copy(hour = hour, minute = minute)
+                                MealReminderPreferences.saveTime(
+                                    context,
+                                    preferenceKey,
+                                    hour,
+                                    minute
+                                )
+                            },
+                            config.hour,
+                            config.minute,
+                            false
+                        ).show()
+                    },
+                    enabled = config.enabled
+                ) {
+                    Text("Reminder time: $displayTime")
+                }
+            }
+
+            Switch(
+                checked = config.enabled,
+                onCheckedChange = { enabled ->
+                    config = config.copy(enabled = enabled)
+                    MealReminderPreferences.saveEnabled(
+                        context,
+                        preferenceKey,
+                        enabled
+                    )
+                }
+            )
+        }
+    }
+}
+
+/* DISH QUANTITY */
 
 @Composable
 fun DishQuantityRow(
@@ -666,35 +601,24 @@ fun DishQuantityRow(
     onDecrease: () -> Unit,
     onIncrease: () -> Unit
 ) {
-
     Surface(
         tonalElevation = 2.dp,
         shape = MaterialTheme.shapes.medium,
         modifier = Modifier.fillMaxWidth()
     ) {
-
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Text(
                 text = dish.name,
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyLarge
             )
-
             IconButton(onClick = onDecrease) {
                 Icon(Icons.Default.Remove, contentDescription = "Decrease")
             }
-
-            Text(
-                text = dish.quantity.toString(),
-                style = MaterialTheme.typography.titleMedium
-            )
-
+            Text(dish.quantity.toString(), style = MaterialTheme.typography.titleMedium)
             IconButton(onClick = onIncrease) {
                 Icon(Icons.Default.Add, contentDescription = "Increase")
             }
@@ -702,9 +626,7 @@ fun DishQuantityRow(
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/* GLUCOSE FIELD                                                               */
-/* -------------------------------------------------------------------------- */
+/* GLUCOSE FIELD */
 
 @Composable
 fun GlucoseField(
@@ -712,23 +634,18 @@ fun GlucoseField(
     value: String,
     onValueChange: (String) -> Unit
 ) {
-
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         suffix = { Text("mg/dL") },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Decimal
-        ),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         singleLine = true,
         modifier = Modifier.fillMaxWidth()
     )
 }
 
-/* -------------------------------------------------------------------------- */
-/* ADD DISH DIALOG                                                             */
-/* -------------------------------------------------------------------------- */
+/* ADD DISH DIALOG */
 
 @Composable
 fun AddDishDialog(
@@ -737,50 +654,29 @@ fun AddDishDialog(
     onDismiss: () -> Unit,
     onDishSelected: (DishEntity) -> Unit
 ) {
-
-    val selectableDishes = availableDishes.filter {
-        it.id !in existingDishIds
-    }
+    val selectableDishes = availableDishes.filter { it.id !in existingDishIds }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-
-        title = {
-            Text("Add Dish")
-        },
-
+        title = { Text("Add Dish") },
         text = {
-
             if (selectableDishes.isEmpty()) {
                 Text("All available dishes have been added.")
             } else {
-
                 LazyColumn {
-
-                    items(
-                        items = selectableDishes,
-                        key = { it.id }
-                    ) { dish ->
-
+                    items(items = selectableDishes, key = { it.id }) { dish ->
                         TextButton(
-                            onClick = {
-                                onDishSelected(dish)
-                            },
+                            onClick = { onDishSelected(dish) },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-
-                            Column(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-
+                            Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
-                                    text = dish.dishName,
+                                    dish.dishName,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
-
                                 if (dish.mainIngredients.isNotBlank()) {
                                     Text(
-                                        text = dish.mainIngredients,
+                                        dish.mainIngredients,
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 }
@@ -790,45 +686,25 @@ fun AddDishDialog(
                 }
             }
         },
-
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
     )
 }
 
-/* -------------------------------------------------------------------------- */
-/* MEALS SCREEN                                                                */
-/* -------------------------------------------------------------------------- */
+/* MEALS SCREEN */
 
 @Composable
-fun MealsScreen(
-    modifier: Modifier = Modifier
-) {
-
+fun MealsScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val database = remember {
-        DatabaseProvider.getDatabase(context)
-    }
+    val database = remember { DatabaseProvider.getDatabase(context) }
 
-    var meals by remember {
-        mutableStateOf(emptyList<MealHistoryEntry>())
-    }
-
-    var isLoading by remember {
-        mutableStateOf(true)
-    }
-
-    var errorMessage by remember {
-        mutableStateOf<String?>(null)
-    }
+    var meals by remember { mutableStateOf(emptyList<MealHistoryEntry>()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     suspend fun loadMeals() {
-
         val mealRecords = database.mealDao().getAllMeals()
-
         meals = mealRecords.map { meal ->
             MealHistoryEntry(
                 meal = meal,
@@ -848,70 +724,36 @@ fun MealsScreen(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(20.dp)
+        modifier = modifier.fillMaxSize().padding(20.dp)
     ) {
-
-        Text(
-            text = "Meals",
-            style = MaterialTheme.typography.headlineSmall
-        )
-
+        Text("Meals", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(12.dp))
 
         when {
-
-            isLoading -> {
-                Text("Loading meals...")
-            }
-
-            errorMessage != null -> {
-                Text(
-                    text = errorMessage!!,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-
-            meals.isEmpty() -> {
-                Text("No meals recorded yet.")
-            }
-
-            else -> {
-
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-
-                    items(
-                        items = meals,
-                        key = { it.meal.id }
-                    ) { entry ->
-
-                        MealHistoryCard(entry)
-                    }
+            isLoading -> Text("Loading meals...")
+            errorMessage != null -> Text(
+                text = errorMessage!!,
+                color = MaterialTheme.colorScheme.error
+            )
+            meals.isEmpty() -> Text("No meals recorded yet.")
+            else -> LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(items = meals, key = { it.meal.id }) { entry ->
+                    MealHistoryCard(entry)
                 }
             }
         }
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/* MEAL HISTORY CARD                                                           */
-/* -------------------------------------------------------------------------- */
+/* MEAL HISTORY CARD */
 
 @Composable
-fun MealHistoryCard(
-    entry: MealHistoryEntry
-) {
-
+fun MealHistoryCard(entry: MealHistoryEntry) {
     val meal = entry.meal
-
     val dateFormat = remember {
-        SimpleDateFormat(
-            "dd MMM yyyy, hh:mm a",
-            Locale.getDefault()
-        )
+        SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
     }
 
     Surface(
@@ -919,164 +761,83 @@ fun MealHistoryCard(
         shape = MaterialTheme.shapes.medium,
         modifier = Modifier.fillMaxWidth()
     ) {
-
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-
-            Text(
-                text = meal.mealType,
-                style = MaterialTheme.typography.titleLarge
-            )
-
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(meal.mealType, style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(4.dp))
-
             Text(
-                text = dateFormat.format(Date(meal.timestamp)),
+                dateFormat.format(Date(meal.timestamp)),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 10.dp)
-            )
-
-            Text(
-                text = "Dishes",
-                style = MaterialTheme.typography.titleMedium
-            )
-
+            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+            Text("Dishes", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(6.dp))
 
             entry.dishes.forEach { dish ->
-
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 3.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-
                     Text(dish.dishName)
-
                     Text("Qty: ${dish.quantity}")
                 }
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 10.dp)
-            )
-
-            Text(
-                text = "Glucose",
-                style = MaterialTheme.typography.titleMedium
-            )
-
+            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+            Text("Glucose", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(6.dp))
 
             MealDetailRow(
                 label = "Before meal",
-                value = meal.preMealGlucose?.let {
-                    "$it mg/dL"
-                } ?: "Not recorded"
+                value = meal.preMealGlucose?.let { "$it mg/dL" } ?: "Not recorded"
             )
-
             MealDetailRow(
                 label = "2 hours",
-                value = meal.twoHourGlucose?.let {
-                    "$it mg/dL"
-                } ?: "Not recorded"
+                value = meal.twoHourGlucose?.let { "$it mg/dL" } ?: "Not recorded"
             )
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 10.dp)
-            )
-
-            Text(
-                text = "Insulin",
-                style = MaterialTheme.typography.titleMedium
-            )
-
+            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+            Text("Insulin", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(6.dp))
 
             MealDetailRow(
                 label = "Lyumjev",
-                value = meal.lyumjevUnits?.let {
-                    "$it units"
-                } ?: "Not recorded"
+                value = meal.lyumjevUnits?.let { "$it units" } ?: "Not recorded"
             )
-
             MealDetailRow(
                 label = "Basalog",
-                value = meal.basalogUnits?.let {
-                    "$it units"
-                } ?: "Not recorded"
+                value = meal.basalogUnits?.let { "$it units" } ?: "Not recorded"
             )
         }
     }
 }
 
 @Composable
-fun MealDetailRow(
-    label: String,
-    value: String
-) {
-
+fun MealDetailRow(label: String, value: String) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 3.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-
-        Text(
-            text = label,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Text(text = value)
+        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value)
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/* DISHES SCREEN                                                               */
-/* -------------------------------------------------------------------------- */
+/* DISHES SCREEN */
 
 @Composable
-fun DishesScreen(
-    modifier: Modifier = Modifier
-) {
-
+fun DishesScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val database = remember { DatabaseProvider.getDatabase(context) }
 
-    val database = remember {
-        DatabaseProvider.getDatabase(context)
-    }
-
-    var dishes by remember {
-        mutableStateOf(emptyList<DishEntity>())
-    }
-
-    var isLoading by remember {
-        mutableStateOf(true)
-    }
-
-    var showDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var dishName by remember {
-        mutableStateOf("")
-    }
-
-    var ingredients by remember {
-        mutableStateOf("")
-    }
-
-    var errorMessage by remember {
-        mutableStateOf<String?>(null)
-    }
+    var dishes by remember { mutableStateOf(emptyList<DishEntity>()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var showDialog by remember { mutableStateOf(false) }
+    var dishName by remember { mutableStateOf("") }
+    var ingredients by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     suspend fun loadDishes() {
         DatabaseProvider.ensureDishesSeeded(context)
@@ -1091,23 +852,16 @@ fun DishesScreen(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-
+    Column(modifier = modifier.fillMaxSize().padding(20.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Text(
-                text = "Dishes",
+                "Dishes",
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.weight(1f)
             )
-
             Button(
                 onClick = {
                     dishName = ""
@@ -1116,11 +870,8 @@ fun DishesScreen(
                     showDialog = true
                 }
             ) {
-
                 Icon(Icons.Default.Add, contentDescription = null)
-
                 Spacer(modifier = Modifier.width(4.dp))
-
                 Text("Add")
             }
         }
@@ -1128,49 +879,28 @@ fun DishesScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         when {
-
-            isLoading -> {
-                Text("Loading dishes...")
-            }
-
-            dishes.isEmpty() -> {
-                Text("No dishes found.")
-            }
-
-            else -> {
-
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-
-                    items(
-                        items = dishes,
-                        key = { it.id }
-                    ) { dish ->
-
-                        Surface(
-                            tonalElevation = 2.dp,
-                            shape = MaterialTheme.shapes.medium,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-
-                            Column(
-                                modifier = Modifier.padding(14.dp)
-                            ) {
-
-                                Text(
-                                    text = dish.dishName,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                Text(
-                                    text = dish.mainIngredients.ifBlank {
-                                        "Ingredients not added"
-                                    }
-                                )
-                            }
+            isLoading -> Text("Loading dishes...")
+            dishes.isEmpty() -> Text("No dishes found.")
+            else -> LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(items = dishes, key = { it.id }) { dish ->
+                    Surface(
+                        tonalElevation = 2.dp,
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Text(
+                                dish.dishName,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                dish.mainIngredients.ifBlank {
+                                    "Ingredients not added"
+                                }
+                            )
                         }
                     }
                 }
@@ -1179,54 +909,35 @@ fun DishesScreen(
     }
 
     if (showDialog) {
-
         AlertDialog(
-            onDismissRequest = {
-                showDialog = false
-            },
-
-            title = {
-                Text("Add New Dish")
-            },
-
+            onDismissRequest = { showDialog = false },
+            title = { Text("Add New Dish") },
             text = {
-
                 Column {
-
                     OutlinedTextField(
                         value = dishName,
                         onValueChange = { dishName = it },
                         label = { Text("Dish name") },
                         singleLine = true
                     )
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     OutlinedTextField(
                         value = ingredients,
                         onValueChange = { ingredients = it },
                         label = { Text("Main ingredients") }
                     )
-
                     errorMessage?.let {
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = it,
-                            color = MaterialTheme.colorScheme.error
-                        )
+                        Text(it, color = MaterialTheme.colorScheme.error)
                     }
                 }
             },
-
             confirmButton = {
-
                 TextButton(
                     onClick = {
-
                         if (dishName.isBlank()) {
                             errorMessage = "Dish name is required."
                         } else {
-
                             scope.launch {
                                 try {
                                     database.dishDao().insertDish(
@@ -1235,10 +946,8 @@ fun DishesScreen(
                                             mainIngredients = ingredients.trim()
                                         )
                                     )
-
                                     loadDishes()
                                     showDialog = false
-
                                 } catch (e: Exception) {
                                     errorMessage = "Unable to save dish."
                                 }
@@ -1249,14 +958,8 @@ fun DishesScreen(
                     Text("Save")
                 }
             },
-
             dismissButton = {
-
-                TextButton(
-                    onClick = {
-                        showDialog = false
-                    }
-                ) {
+                TextButton(onClick = { showDialog = false }) {
                     Text("Cancel")
                 }
             }
