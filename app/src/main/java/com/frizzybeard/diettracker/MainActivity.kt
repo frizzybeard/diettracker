@@ -558,7 +558,7 @@ fun HomeScreen(
 
                                 val meal = MealEntity(
                                     mealType = mealType,
-                                    timestamp = System.currentTimeMillis(),
+                                    timestamp = selectedDateTime.timeInMillis,
                                     preMealGlucose = glucoseBefore,
                                     twoHourGlucose = glucoseAfter,
                                     lyumjevUnits = lyumjevDose,
@@ -583,6 +583,8 @@ fun HomeScreen(
                                 twoHour = ""
                                 lyumjev = ""
                                 basalog = ""
+
+                                selectedDateTime = Calendar.getInstance()
 
                                 saveMessage = "Meal saved successfully!"
 
