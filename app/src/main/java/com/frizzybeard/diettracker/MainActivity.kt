@@ -1,6 +1,8 @@
 
 package com.frizzybeard.diettracker
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,6 +31,7 @@ import com.frizzybeard.diettracker.data.MealDishEntity
 import com.frizzybeard.diettracker.data.MealEntity
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -67,7 +71,8 @@ data class MealHistoryEntry(
 enum class AppTab {
     HOME,
     MEALS,
-    DISHES
+    DISHES,
+    SETTINGS
 }
 
 /* -------------------------------------------------------------------------- */
@@ -114,6 +119,18 @@ fun GlucoseTrackerApp() {
                     },
                     label = { Text("Dishes") }
                 )
+
+                NavigationBarItem(
+                    selected = selectedTab == AppTab.SETTINGS,
+                    onClick = { selectedTab = AppTab.SETTINGS },
+                    icon = {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
+                    },
+                    label = { Text("Settings") }
+                )
             }
         }
     ) { padding ->
@@ -128,6 +145,10 @@ fun GlucoseTrackerApp() {
             )
 
             AppTab.DISHES -> DishesScreen(
+                modifier = Modifier.padding(padding)
+            )
+
+            AppTab.SETTINGS -> SettingsScreen(
                 modifier = Modifier.padding(padding)
             )
         }
@@ -175,6 +196,18 @@ fun HomeScreen(
     var lyumjev by remember { mutableStateOf("") }
     var basalog by remember { mutableStateOf("") }
 
+    var selectedDateTime by remember {
+        mutableStateOf(Calendar.getInstance())
+    }
+
+    val dateFormat = remember {
+        SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+    }
+
+    val timeFormat = remember {
+        SimpleDateFormat("hh:mm a", Locale.getDefault())
+    }
+
     var isSaving by remember { mutableStateOf(false) }
     var saveMessage by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -194,12 +227,77 @@ fun HomeScreen(
             .padding(horizontal = 20.dp)
     ) {
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Record Meal",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f)
+            )
 
-        Text(
-            text = "Record Meal",
-            style = MaterialTheme.typography.headlineSmall
-        )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "Date",
+                    style = MaterialTheme.typography.labelSmall
+                )
+
+                TextButton(
+                    onClick = {
+                        val current = selectedDateTime.clone() as Calendar
+
+                        DatePickerDialog(
+                            context,
+                            { _, year, month, day ->
+                                selectedDateTime =
+                                    (selectedDateTime.clone() as Calendar).apply {
+                                        set(year, month, day)
+                                    }
+                            },
+                            current.get(Calendar.YEAR),
+                            current.get(Calendar.MONTH),
+                            current.get(Calendar.DAY_OF_MONTH)
+                        ).show()
+                    }
+                ) {
+                    Text(dateFormat.format(selectedDateTime.time))
+                }
+            }
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "Time",
+                    style = MaterialTheme.typography.labelSmall
+                )
+
+                TextButton(
+                    onClick = {
+                        val current = selectedDateTime.clone() as Calendar
+
+                        TimePickerDialog(
+                            context,
+                            { _, hour, minute ->
+                                selectedDateTime =
+                                    (selectedDateTime.clone() as Calendar).apply {
+                                        set(Calendar.HOUR_OF_DAY, hour)
+                                        set(Calendar.MINUTE, minute)
+                                    }
+                            },
+                            current.get(Calendar.HOUR_OF_DAY),
+                            current.get(Calendar.MINUTE),
+                            false
+                        ).show()
+                    }
+                ) {
+                    Text(timeFormat.format(selectedDateTime.time))
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -529,6 +627,30 @@ fun HomeScreen(
                 showAddDishDialog = false
             }
         )
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+/* SETTINGS SCREEN                                                             */
+/* -------------------------------------------------------------------------- */
+
+@Composable
+fun SettingsScreen(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(20.dp)
+    ) {
+        Text(
+            text = "Settings",
+            style = MaterialTheme.typography.headlineSmall
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Meal reminders will be configured here.")
     }
 }
 
